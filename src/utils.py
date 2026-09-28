@@ -89,3 +89,33 @@ def analisis_fecha(valor, campo="fecha"):
 
 def gmt_menos_3_actual():
     return datetime.now(GMT_MENOS_3).replace(tzinfo=None)
+
+def historial_limpio(historial):
+    if not historial or not isinstance(historial, dict):
+        return historial
+
+    resultado = {}
+    for key, valor in historial.items():
+        if isinstance(valor, datetime):
+            resultado[key] = serializar_datetime(valor)
+        elif isinstance(valor, date):
+            resultado[key] = valor.isoformat()
+        elif isinstance(valor, time):
+            resultado[key] = valor.strftime("%H:%M:%S")
+        elif isinstance(valor, timedelta):
+            segundos_total = int(valor.total_seconds())
+            horas = segundos_total // 3600
+            minutos = (segundos_total % 3600) // 60
+            segundos = segundos_total % 60
+            resultado[key] = f"{horas:02d}:{minutos:02d}:{segundos:02d}"
+        elif isinstance(valor, dict):
+            resultado[key] = historial_limpio(valor)
+        else:
+            resultado[key] = valor
+
+    return resultado
+
+def limpiar_historiales(historiales):
+    if not historiales:
+        return []
+    return [historial_limpio(h) for h in historiales]
