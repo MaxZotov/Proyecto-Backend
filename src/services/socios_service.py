@@ -21,5 +21,31 @@ def crear_socio(data):
         (data["nombre"], data["email"], activo),
         return_id=True
     )
-    # necesita la funcion obtener_socio_id para devolver el socio creado
+    return obtener_socio_id(id_socio)
+
+def obtener_socio_id(id_socio):
+    socio = fetch_one("SELECT id, nombre, email, activo FROM socios WHERE id = %s", (id_socio,))
+    return socio
+
+def actualizar_socio(id_socio, datos):
+    campos_permitidos = ["nombre", "email", "activo"]
+    
+    campos_set = []
+    valores = []
+    
+    for clave, valor in datos.items():
+        if clave in campos_permitidos:
+            campos_set.append(f"{clave} = %s")
+            valores.append(valor)
+            
+    if not campos_set:
+        return obtener_socio_id(id_socio)
+        
+    valores.append(id_socio)
+    
+    clausula_set = ", ".join(campos_set)
+    query = f"UPDATE socios SET {clausula_set} WHERE id = %s"
+    
+    execute(query, tuple(valores))
+    
     return obtener_socio_id(id_socio)
