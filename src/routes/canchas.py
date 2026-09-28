@@ -52,7 +52,7 @@ def post_cancha():
     try:
         datos = request.get_json(silent=True)
         cancha_validada = validar_cancha(datos)
-        cancha = crear_cancha(datos) # correccion cancha = crear_cancha(cancha_validada)
+        cancha = crear_cancha(cancha_validada)
         return jsonify(cancha), 201
     except ValueError as exc:
         return error("ERROR_VALIDACION", "El cuerpo es inválido", str(exc), 400)
