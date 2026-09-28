@@ -11,7 +11,7 @@ from src.utils import (
     analisis_paginacion,
     rechazar_query_desconocida,
 )
-from src.validators.common import validar_intervalo
+from src.validators.commons import validar_intervalo
 from src.validators.entities import validar_cancha
 
 
