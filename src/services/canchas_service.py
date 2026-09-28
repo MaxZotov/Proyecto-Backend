@@ -1,4 +1,4 @@
-from source.db import execute, fetch_all, fetch_one
+from src.db import execute, fetch_all, fetch_one
 
 
 def listar_canchas(filtros, limit, offset):
