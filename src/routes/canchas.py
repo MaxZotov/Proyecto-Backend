@@ -1,54 +1,45 @@
-
 from flask import Blueprint, jsonify, request
 from mysql.connector import Error
 
-from src.services.canchas_service import (
-    create_court,
-    delete_court,
-    get_court,
-    list_available,
-    list_courts,
-    update_court,
-)
+from src.services.canchas_service import crear_cancha, listar_canchas
 from src.utils import (
-    clean_records,
+    limpiar_registros,
     error,
-    pagination_response,
-    parse_bool,
-    parse_date,
-    parse_id,
-    parse_pagination,
-    reject_unknown_query,
+    respuesta_paginacion,
+    analisis_bool,
+    analisis_id,
+    analisis_paginacion,
+    rechazar_query_desconocida,
 )
-from src.validators.common import validate_interval
-from src.validators.entities import validate_court
+from src.validators.common import validar_intervalo
+from src.validators.entities import validar_cancha
 
 
 canchas_bp = Blueprint("canchas", __name__)
 
 
-def _query_filters():
-    filters = {}
+def _consulta_filtros():
+    filtros = {}
     if "id_deporte" in request.args:
-        filters["id_deporte"] = parse_id(request.args["id_deporte"], "id_deporte")
+        filtros["id_deporte"] = analisis_id(request.args["id_deporte"], "id_deporte")
     if "nombre" in request.args:
-        filters["nombre"] = request.args["nombre"]
-    for field in ("techada", "activa"):
-        if field in request.args:
-            filters[field] = parse_bool(request.args[field], field)
-    return filters
+        filtros["nombre"] = request.args["nombre"]
+    for campo in ("techada", "activa"):
+        if campo in request.args:
+            filtros[campo] = analisis_bool(request.args[campo], campo)
+    return filtros
 
 
 @canchas_bp.route("/canchas", methods=["GET"])
 def get_canchas():
     try:
-        reject_unknown_query({"id_deporte", "nombre", "techada", "activa", "_limit", "_offset"})
-        filters = _query_filters()
-        limit, offset = parse_pagination()
-        rows, total = list_courts(filters, limit, offset)
-        if not rows:
+        rechazar_query_desconocida({"id_deporte", "nombre", "techada", "activa", "_limit", "_offset"})
+        filtros = _consulta_filtros()
+        limit, offset = analisis_paginacion()
+        filas, total = listar_canchas(filtros, limit, offset)
+        if not filas:
             return "", 204
-        return jsonify(pagination_response("canchas", clean_records(rows), total, limit, offset)), 200
+        return jsonify(respuesta_paginacion("canchas", limpiar_registros(filas), total, limit, offset)), 200
     except ValueError as exc:
         return error("ERROR_VALIDACION", "Parámetros inválidos", str(exc), 400)
     except Error:
@@ -58,9 +49,10 @@ def get_canchas():
 @canchas_bp.route("/canchas", methods=["POST"])
 def post_cancha():
     try:
-        data = validate_court(request.get_json(silent=True))
-        court = create_court(data)
-        return jsonify(court), 201
+        datos = request.get_json(silent=True)
+        cancha_validada = validar_cancha(datos)
+        cancha = crear_cancha(datos)
+        return jsonify(cancha), 201
     except ValueError as exc:
         return error("ERROR_VALIDACION", "El cuerpo es inválido", str(exc), 400)
     except Error as exc:
