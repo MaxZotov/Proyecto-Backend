@@ -32,3 +32,20 @@ def validar_booleano(valor,campo):
         raise ValueError (f"el campo '{campo}' debe ser un booleano")
     return valor
 
+def validar_intervalo(comienzo_texto, final_texto):
+    comienzo = analisis_iso_datetime(comienzo_texto)
+    final = analisis_iso_datetime(final_texto)
+    if comienzo >= final:
+        raise ValueError("la fecha y hora de inicio debe ser anterior a la fecha y hora final")
+    if comienzo <= gmt_menos_3_actual():
+        raise ValueError("El inicio de la reserva debe ser posterior al momento actual")
+    if comienzo.date() != final.date():
+        raise ValueError("la reserva no puede atravesar la medianoche")
+    if comienzo.minute or comienzo.second or comienzo.microsecond or final.minute or final.second or final.microsecond:
+        raise ValueError("El intervalo debe comenzar y terminar en horas en punto")
+    duracion = int((final - comienzo).total_seconds() // 3600)
+    if not HORA_RESERVACION_MINIMA <= duracion <= HORA_RESERVACION_MAXIMA:
+        raise ValueError("La reserva debe durar entre 1 y 3 horas")
+    if comienzo.hour < HORA_APERTURA or final.hour > HORA_CIERRE:
+        raise ValueError("El intervalo debe estar entre las 08:00 y las 23:00")
+    return comienzo, final, duracion
